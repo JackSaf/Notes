@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.database.model
+package com.jacksafblaze.notes.database
 
 import androidx.room.Database
 
