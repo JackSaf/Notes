@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.jacksafblaze.notes.databinding.NoteListItemBinding
 import com.jacksafblaze.notes.domain.model.Note
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class NoteAdapter(
     val onItemClickCallback: (Int) -> Unit
@@ -47,7 +49,14 @@ class NoteAdapter(
         fun bind(note: Note) {
             binding.title.text = note.title
             binding.description.text = note.description
-            binding.lastChangeDate.text = note.lastChangeDate
+            val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
+            val dt = LocalDateTime.parse(note.lastChangeDate, dateTimeFormatter)
+            val dateString: String = if(note.isMadeToday){
+                "${dt.hour}:${dt.minute}"
+            } else {
+                "${dt.dayOfMonth}.${dt.monthValue}.${dt.year}"
+            }
+            binding.lastChangeDate.text = dateString
             binding.rootItemLayout.setOnClickListener{
                 onItemClickCallback.invoke(note.id)
             }
