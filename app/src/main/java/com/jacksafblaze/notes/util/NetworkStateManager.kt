@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.networkutil
+package com.jacksafblaze.notes.util
 
 import kotlinx.coroutines.flow.Flow
 

@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.networkutil
+package com.jacksafblaze.notes.util
 
 import android.net.ConnectivityManager
 import android.net.Network
