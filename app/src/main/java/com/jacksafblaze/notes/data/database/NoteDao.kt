@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.database
+package com.jacksafblaze.notes.data.database
 
 import androidx.room.Dao
 import androidx.room.Delete
