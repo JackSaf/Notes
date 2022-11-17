@@ -9,5 +9,6 @@ data class NoteDbDto(
     @PrimaryKey val id: Int,
     val title: String,
     val description: String,
-    @ColumnInfo(name = "last_changes_date")val lastChangesDate: String
+    @ColumnInfo(name = "last_changes_date")val lastChangesDate: String,
+    val isMadeToday: Boolean
 )
