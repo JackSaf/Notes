@@ -12,7 +12,10 @@ interface NoteDao {
     @Query("Select * from notes")
     fun getAllNotes(): Flow<List<NoteDbDto>>
 
-    @Insert
+    @Query("Select * from notes where notes.isMadeToday = 1")
+    suspend fun getNotesThatMadeToday(): List<NoteDbDto>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllNotes(list: List<NoteDbDto>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
