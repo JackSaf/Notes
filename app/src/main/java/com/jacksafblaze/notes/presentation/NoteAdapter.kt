@@ -47,7 +47,7 @@ class NoteAdapter(
         fun bind(note: Note) {
             binding.title.text = note.title
             binding.description.text = note.description
-            binding.lastChangeDate.text = note.date
+            binding.lastChangeDate.text = note.lastChangeDate
             binding.rootItemLayout.setOnClickListener{
                 onItemClickCallback.invoke(note.id)
             }
