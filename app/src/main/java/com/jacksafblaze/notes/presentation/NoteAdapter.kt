@@ -50,7 +50,7 @@ class NoteAdapter(
             binding.title.text = note.title
             binding.description.text = note.description
             val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
-            val dt = LocalDateTime.parse(note.lastChangeDate, dateTimeFormatter)
+            val dt = LocalDateTime.parse(note.lastChangesDate, dateTimeFormatter)
             val dateString: String = if(note.isMadeToday){
                 "${dt.hour}:${dt.minute}"
             } else {
