@@ -1,6 +1,5 @@
 package com.jacksafblaze.notes.presentation
 
-import android.net.ConnectivityManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jacksafblaze.notes.domain.model.Note
@@ -8,7 +7,8 @@ import com.jacksafblaze.notes.domain.usecases.AddNoteUseCase
 import com.jacksafblaze.notes.domain.usecases.DeleteNoteUseCase
 import com.jacksafblaze.notes.domain.usecases.FetchNotesUseCase
 import com.jacksafblaze.notes.domain.usecases.ViewNotesUseCase
-import com.jacksafblaze.notes.networkutil.NetworkStateManager
+import com.jacksafblaze.notes.util.NetworkStateManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-class NoteListViewModel(
+@HiltViewModel
+class NoteListViewModel @Inject constructor(
     private val addNoteUseCase: AddNoteUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val viewNotesUseCase: ViewNotesUseCase,

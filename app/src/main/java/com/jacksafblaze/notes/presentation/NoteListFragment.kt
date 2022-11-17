@@ -15,9 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.jacksafblaze.notes.R
 import com.jacksafblaze.notes.databinding.FragmentNoteListBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-
+@AndroidEntryPoint
 class NoteListFragment : Fragment() {
     private var _binding: FragmentNoteListBinding? = null
     private val binding get() = _binding!!
