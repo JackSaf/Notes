@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.presentation
+package com.jacksafblaze.notes.presentation.notelist
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

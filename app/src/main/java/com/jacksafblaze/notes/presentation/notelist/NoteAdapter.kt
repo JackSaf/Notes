@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.presentation
+package com.jacksafblaze.notes.presentation.notelist
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

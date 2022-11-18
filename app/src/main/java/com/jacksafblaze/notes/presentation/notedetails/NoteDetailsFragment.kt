@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.presentation
+package com.jacksafblaze.notes.presentation.notedetails
 
 import android.os.Bundle
 import android.text.Editable

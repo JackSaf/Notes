@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    tools:context=".presentation.NoteListFragment">
+    tools:context=".presentation.notelist.NoteListFragment">
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/fetching_progress_bar"

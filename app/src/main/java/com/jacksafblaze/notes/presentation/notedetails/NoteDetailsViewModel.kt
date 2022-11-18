@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.presentation
+package com.jacksafblaze.notes.presentation.notedetails
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

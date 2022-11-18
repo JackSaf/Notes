@@ -1,4 +1,4 @@
-package com.jacksafblaze.notes.presentation
+package com.jacksafblaze.notes.presentation.notelist
 
 import com.jacksafblaze.notes.domain.model.Note
 
