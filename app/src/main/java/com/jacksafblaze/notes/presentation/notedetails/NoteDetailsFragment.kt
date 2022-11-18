@@ -13,15 +13,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jacksafblaze.notes.R
 import com.jacksafblaze.notes.databinding.FragmentNoteDetailsBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class NoteDetailsFragment : Fragment() {
     private val viewModel: NoteDetailsViewModel by viewModels()
     private var _binding: FragmentNoteDetailsBinding? = null
     private val binding get() = _binding!!
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
