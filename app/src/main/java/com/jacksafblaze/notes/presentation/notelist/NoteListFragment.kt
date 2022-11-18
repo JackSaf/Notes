@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -54,22 +55,26 @@ class NoteListFragment : Fragment() {
         bindState()
     }
 
-    fun setupRecyclerView(){
-        adapter = NoteAdapter({itemId ->
-
-        })
+    private fun setupRecyclerView(){
+        adapter = NoteAdapter{itemId ->
+            val navController = findNavController()
+            if(navController.currentDestination!!.id == R.id.noteListFragment){
+                val action = NoteListFragmentDirections.actionNoteListFragmentToNoteDetailsFragment(itemId)
+                navController.navigate(action)
+            }
+        }
         binding.noteList.layoutManager = LinearLayoutManager(requireContext())
         binding.noteList.adapter = adapter
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.noteList)
     }
 
-    fun setupFab(){
+    private fun setupFab(){
         binding.addFab.setOnClickListener{
             viewModel.addDefaultNote()
         }
     }
 
-    fun bindState(){
+    private fun bindState(){
         viewLifecycleOwner.lifecycleScope.launch{
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
                 viewModel.uiState.collect{state ->
