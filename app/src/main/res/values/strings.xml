@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Notes</string>
     <string name="fab_description">Добавить записку</string>
+    <string name="title_hint">Заголовок</string>
+    <string name="description_hint">Описание</string>
+    <string name="update_menu_item_title">Сохранить</string>
 </resources>
