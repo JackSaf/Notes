@@ -82,12 +82,14 @@ class NoteListFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
                 viewModel.uiState.collect{state ->
                     if(state.isLaunchedForTheFirstTime){
+                        binding.addFab.isEnabled = false
                         binding.firstTimeProgressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility = if(state.networkMessage != null) View.VISIBLE else View.GONE
                         binding.message.text = state.networkMessage
 
                     }
                     else{
+                        binding.addFab.isEnabled = true
                         binding.firstTimeProgressBar.visibility = View.GONE
                         binding.fetchingProgressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility = if(state.dataMessage != null) View.VISIBLE else View.GONE

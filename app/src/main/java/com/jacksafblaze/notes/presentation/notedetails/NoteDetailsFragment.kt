@@ -54,6 +54,7 @@ class NoteDetailsFragment : Fragment() {
                 return when (menuItem.itemId) {
                     R.id.update_item -> {
                         viewModel.updateCurrentNote()
+                        findNavController().navigateUp()
                         true
                     }
                     else -> false

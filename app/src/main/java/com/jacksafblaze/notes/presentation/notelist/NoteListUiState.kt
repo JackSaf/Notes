@@ -6,7 +6,7 @@ data class NoteListUiState(
     val noteList: List<Note>? = null,
     val isLaunchedForTheFirstTime: Boolean = true,
     val isLoading: Boolean = false,
-    val shouldRetryRequest: Boolean = true,
+    val isFetched: Boolean = false,
     val networkMessage: String? = null,
     val dataMessage: String? = null
 )

@@ -31,54 +31,54 @@ class NoteListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private val networkState = networkStateManager.isOnline()
     var fetchJob: Job? = null
+
     init {
         checkNetworkConnectivity()
         viewNotes()
     }
+
     private fun checkNetworkConnectivity() = viewModelScope.launch {
         networkState.collect { isOnline ->
-            if (isOnline) {
+            if (!_uiState.value.isFetched){
+                fetchJob?.cancel()
+                _uiState.update {state->
+                    state.copy(isLoading = true)
+                }
                 fetchJob = fetchNotes()
-                networkMessageShown()
-            } else {
-                fetchJob?.let { job ->
-                    if(job.isActive){
-                        job.cancel(CancellationException())
-                        _uiState.update {
-                            it.copy(shouldRetryRequest = true, isLoading = false)
-                        }
+                if(!isOnline){
+                    fetchJob?.cancel()
+                    _uiState.update { state ->
+                        state.copy(isLoading = false, networkMessage = "Нет интернета")
                     }
                 }
-                _uiState.update {
-                    it.copy(networkMessage = "Нет интернета")
+                else{
+                    _uiState.update { state ->
+                        state.copy(networkMessage = null)
+                    }
                 }
             }
         }
     }
 
     private fun viewNotes() = viewModelScope.launch {
-        viewNotesUseCase.execute().collect{ noteList ->
-            if(noteList.isEmpty()){
+        viewNotesUseCase.execute().collect { noteList ->
+            if (noteList.isEmpty()) {
                 _uiState.update { state ->
                     state.copy(dataMessage = "Нет данных")
                 }
-            }
-            else{
+            } else {
                 _uiState.update { state ->
-                    state.copy(dataMessage = null)
+                    state.copy(dataMessage = null, noteList = noteList)
                 }
-            }
-            _uiState.update { state ->
-                state.copy(noteList = noteList)
             }
         }
     }
 
-    fun deleteNote(note: Note) = viewModelScope.launch{
+    fun deleteNote(note: Note) = viewModelScope.launch {
         deleteNoteUseCase.execute(note)
     }
 
-    fun addDefaultNote() = viewModelScope.launch{
+    fun addDefaultNote() = viewModelScope.launch {
         val date = LocalDateTime.now()
         val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val dateString = date.format(dateTimeFormatter)
@@ -91,18 +91,13 @@ class NoteListViewModel @Inject constructor(
     }
 
     private fun fetchNotes() = viewModelScope.launch {
-        if(_uiState.value.shouldRetryRequest){
-            _uiState.update {
-                it.copy(shouldRetryRequest = false, isLoading = true)
-            }
-            fetchNotesUseCase.execute()
-            _uiState.update {
-                it.copy(isLaunchedForTheFirstTime = false, isLoading = false)
-            }
+        fetchNotesUseCase.execute()
+        _uiState.update {
+            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true)
         }
     }
 
-    fun networkMessageShown(){
+    fun networkMessageShown() {
         _uiState.update {
             it.copy(networkMessage = null)
         }
