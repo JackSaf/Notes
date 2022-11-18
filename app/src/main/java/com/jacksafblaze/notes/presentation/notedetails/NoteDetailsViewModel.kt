@@ -39,13 +39,19 @@ class NoteDetailsViewModel @Inject constructor(
             state.copy(note = note, noteTitle = note.title, noteDescription = note.description)
         }
     }
+
+    fun noteShown(){
+        _uiState.update {state ->
+            state.copy(noteIsShown = true)
+        }
+    }
     fun updateCurrentNote() = viewModelScope.launch {
         val noteTitle = _uiState.value.noteTitle!!
         val noteDescription = _uiState.value.noteDescription!!
         val currentNote = _uiState.value.note!!
         if(noteTitle != currentNote.title || noteDescription != currentNote.description){
             val date = LocalDateTime.now()
-            val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
+            val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             val dateString = date.format(dateTimeFormatter)
             val updatedNote = currentNote.copy(title = noteTitle, description = noteDescription, lastChangesDate = dateString)
             updateNoteUseCase.execute(updatedNote)

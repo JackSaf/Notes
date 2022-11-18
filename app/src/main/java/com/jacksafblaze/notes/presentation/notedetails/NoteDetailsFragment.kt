@@ -30,17 +30,19 @@ class NoteDetailsFragment : Fragment() {
         _binding = FragmentNoteDetailsBinding.inflate(inflater, container, false)
         return _binding?.root
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupTitleEditText()
         setupDescriptionEditText()
         val noteId = arguments?.getInt("noteId")
-        noteId?.let {id ->
+        noteId?.let { id ->
             viewModel.setNote(id)
         }
         prepareMenu()
         bindState()
     }
+
     private fun prepareMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
@@ -50,7 +52,7 @@ class NoteDetailsFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
-                    R.id.update_item-> {
+                    R.id.update_item -> {
                         viewModel.updateCurrentNote()
                         true
                     }
@@ -60,8 +62,9 @@ class NoteDetailsFragment : Fragment() {
 
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
-    private fun setupTitleEditText(){
-        binding.title.addTextChangedListener(object: TextWatcher{
+
+    private fun setupTitleEditText() {
+        binding.title.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -73,8 +76,8 @@ class NoteDetailsFragment : Fragment() {
         })
     }
 
-    private fun setupDescriptionEditText(){
-        binding.title.addTextChangedListener(object: TextWatcher{
+    private fun setupDescriptionEditText() {
+        binding.description.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -84,15 +87,21 @@ class NoteDetailsFragment : Fragment() {
             }
         })
     }
-    private fun bindState(){
-        viewLifecycleOwner.lifecycleScope.launch{
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.uiState.collect{state ->
-                    binding.title.setText(state.noteTitle)
-                    binding.description.setText(state.noteDescription)
-                    if(state.isSuccessfullyUpdated){
+
+    private fun bindState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    if(!state.noteIsShown) {
+                        state.note?.let { note ->
+                            binding.title.setText(note.title)
+                            binding.description.setText(note.description)
+                            viewModel.noteShown()
+                        }
+                    }
+                    if (state.isSuccessfullyUpdated) {
                         val navController = findNavController()
-                        if(navController.currentDestination!!.id == R.id.noteDetailsFragment){
+                        if (navController.currentDestination!!.id == R.id.noteDetailsFragment) {
                             navController.navigateUp()
                         }
                     }

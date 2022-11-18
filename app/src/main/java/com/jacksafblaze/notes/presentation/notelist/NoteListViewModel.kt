@@ -80,7 +80,7 @@ class NoteListViewModel @Inject constructor(
 
     fun addDefaultNote() = viewModelScope.launch{
         val date = LocalDateTime.now()
-        val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
+        val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val dateString = date.format(dateTimeFormatter)
         val id = 0
         val title = "Новая заметка"

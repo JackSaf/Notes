@@ -44,8 +44,8 @@ class NoteListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_note_list, container, false)
+        _binding = FragmentNoteListBinding.inflate(inflater, container, false)
+        return _binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -63,7 +63,10 @@ class NoteListFragment : Fragment() {
                 navController.navigate(action)
             }
         }
-        binding.noteList.layoutManager = LinearLayoutManager(requireContext())
+        val linearLayoutManager = LinearLayoutManager(requireContext())
+        linearLayoutManager.reverseLayout = true
+        linearLayoutManager.stackFromEnd = true
+        binding.noteList.layoutManager = linearLayoutManager
         binding.noteList.adapter = adapter
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.noteList)
     }
@@ -85,6 +88,7 @@ class NoteListFragment : Fragment() {
 
                     }
                     else{
+                        binding.firstTimeProgressBar.visibility = View.GONE
                         binding.fetchingProgressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility = if(state.dataMessage != null) View.VISIBLE else View.GONE
                         binding.message.text = state.dataMessage

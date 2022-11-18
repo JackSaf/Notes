@@ -49,10 +49,16 @@ class NoteAdapter(
         fun bind(note: Note) {
             binding.title.text = note.title
             binding.description.text = note.description
-            val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
+            val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             val dt = LocalDateTime.parse(note.lastChangesDate, dateTimeFormatter)
             val dateString: String = if(note.isMadeToday){
-                "${dt.hour}:${dt.minute}"
+                val hourString = dt.hour.toString()
+                val minuteString: String = if(dt.minute < 10){
+                    "0${dt.minute}"
+                } else{
+                    dt.minute.toString()
+                }
+                "$hourString:$minuteString"
             } else {
                 "${dt.dayOfMonth}.${dt.monthValue}.${dt.year}"
             }
