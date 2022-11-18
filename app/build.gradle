@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace 'com.jacksafblaze.notes'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.jacksafblaze.notes"
         minSdk 28
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -52,6 +52,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1'
     implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-coroutines:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
