@@ -60,7 +60,20 @@ class NoteAdapter(
                 }
                 "$hourString:$minuteString"
             } else {
-                "${dt.dayOfMonth}.${dt.monthValue}.${dt.year}"
+                val dayOfMonthString: String = if(dt.dayOfMonth < 10){
+                    "0${dt.dayOfMonth}"
+                }
+                else{
+                    dt.dayOfMonth.toString()
+                }
+                val monthString = if(dt.monthValue < 10){
+                    "0${dt.monthValue}"
+                }
+                else {
+                    dt.monthValue.toString()
+                }
+                val yearString = dt.year.toString()
+                "$dayOfMonthString.$monthString.$yearString"
             }
             binding.lastChangeDate.text = dateString
             binding.rootItemLayout.setOnClickListener{
