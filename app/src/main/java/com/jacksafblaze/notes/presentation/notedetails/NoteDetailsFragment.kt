@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.jacksafblaze.notes.R
 import com.jacksafblaze.notes.databinding.FragmentNoteDetailsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,8 +34,10 @@ class NoteDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupTitleEditText()
         setupDescriptionEditText()
-        val noteId = arguments?.get("noteId")
-        viewModel.setNote(1)
+        val noteId = arguments?.getInt("noteId")
+        noteId?.let {id ->
+            viewModel.setNote(id)
+        }
         prepareMenu()
         bindState()
     }
@@ -87,6 +90,12 @@ class NoteDetailsFragment : Fragment() {
                 viewModel.uiState.collect{state ->
                     binding.title.setText(state.noteTitle)
                     binding.description.setText(state.noteDescription)
+                    if(state.isSuccessfullyUpdated){
+                        val navController = findNavController()
+                        if(navController.currentDestination!!.id == R.id.noteDetailsFragment){
+                            navController.navigateUp()
+                        }
+                    }
                 }
             }
         }
