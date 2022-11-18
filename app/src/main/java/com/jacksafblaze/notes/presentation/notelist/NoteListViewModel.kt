@@ -9,7 +9,6 @@ import com.jacksafblaze.notes.domain.usecases.FetchNotesUseCase
 import com.jacksafblaze.notes.domain.usecases.ViewNotesUseCase
 import com.jacksafblaze.notes.util.NetworkStateManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +29,7 @@ class NoteListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NoteListUiState())
     val uiState = _uiState.asStateFlow()
     private val networkState = networkStateManager.isOnline()
-    var fetchJob: Job? = null
+    private var fetchJob: Job? = null
 
     init {
         checkNetworkConnectivity()
