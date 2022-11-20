@@ -36,10 +36,6 @@ class RepositoryImpl(database: NoteDatabase, private val api: NoteApi): NoteRepo
         noteDao.updateNote(noteDbDto)
     }
 
-    override suspend fun addAllNotes(noteList: List<Note>) {
-        val noteDbDtoList = DatabaseMapper.mapDomainModelListToEntityList(noteList)
-        noteDao.insertAllNotes(noteDbDtoList)
-    }
 
     override suspend fun addNote(note: Note) {
         val noteDbDto = DatabaseMapper.mapDomainModelToEntity(note)
