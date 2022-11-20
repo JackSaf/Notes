@@ -5,6 +5,5 @@ data class NoteNetworkEntity(
     val id: Int,
     val title: String,
     val description: String,
-    val lastChangesDate: String,
-    val isMadeToday: Boolean
+    val lastChangesDate: String
 )

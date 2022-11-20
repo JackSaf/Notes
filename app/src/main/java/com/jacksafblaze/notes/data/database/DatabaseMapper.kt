@@ -9,8 +9,7 @@ object DatabaseMapper : EntityMapper<NoteDbDto, Note> {
             id = entity.id,
             title = entity.title,
             description = entity.description,
-            lastChangesDate = entity.lastChangesDate,
-            isMadeToday = entity.isMadeToday
+            lastChangesDate = entity.lastChangesDate
         )
     }
 
@@ -19,8 +18,7 @@ object DatabaseMapper : EntityMapper<NoteDbDto, Note> {
             id = domainModel.id,
             title = domainModel.title,
             description = domainModel.description,
-            lastChangesDate = domainModel.lastChangesDate,
-            isMadeToday = domainModel.isMadeToday
+            lastChangesDate = domainModel.lastChangesDate
         )
     }
 
