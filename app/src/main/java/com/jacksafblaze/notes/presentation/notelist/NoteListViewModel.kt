@@ -73,6 +73,13 @@ class NoteListViewModel @Inject constructor(
         }
     }
 
+    private fun fetchNotes() = viewModelScope.launch {
+        fetchNotesUseCase.execute()
+        _uiState.update {
+            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true)
+        }
+    }
+
     fun deleteNote(note: Note) = viewModelScope.launch {
         deleteNoteUseCase.execute(note)
     }
@@ -84,15 +91,14 @@ class NoteListViewModel @Inject constructor(
         val id = 0
         val title = "Новая заметка"
         val description = ""
-        val isMadeToday = true
-        val note = Note(id, title, description, dateString, isMadeToday)
+        val note = Note(id, title, description, dateString)
         addNoteUseCase.execute(note)
     }
+    
 
-    private fun fetchNotes() = viewModelScope.launch {
-        fetchNotesUseCase.execute()
+    fun setLaunchedForTheFirstTime(isLaunchedForTheFirstTime: Boolean){
         _uiState.update {
-            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true)
+            it.copy(isLaunchedForTheFirstTime = isLaunchedForTheFirstTime)
         }
     }
 
