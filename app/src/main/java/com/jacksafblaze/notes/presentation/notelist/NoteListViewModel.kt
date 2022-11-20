@@ -36,23 +36,23 @@ class NoteListViewModel @Inject constructor(
         viewNotes()
     }
 
-    private fun checkNetworkConnectivity() = viewModelScope.launch {
+    private fun checkNetworkConnectivity() = viewModelScope.launch {        //запускаем проверку состояния интернета
         networkState.collect { isOnline ->
-            if (!_uiState.value.isFetched){
-                fetchJob?.cancel()
+            if (!_uiState.value.isFetched){                     //если данные не подгружены
+                fetchJob?.cancel()                              //предыдущую загрузку, если таковая была, отменяем
                 _uiState.update {state->
                     state.copy(isLoading = true)
                 }
-                fetchJob = fetchNotes()
+                fetchJob = fetchNotes()                         //начинаем загрузку
                 if(!isOnline){
-                    fetchJob?.cancel()
+                    fetchJob?.cancel()                          //проверяем онлайн, если соединения нет, отменяем загрузку
                     _uiState.update { state ->
-                        state.copy(isLoading = false, networkMessage = "Нет интернета")
+                        state.copy(isLoading = false, noNetworkMessage = "Нет интернета")
                     }
                 }
                 else{
                     _uiState.update { state ->
-                        state.copy(networkMessage = null)
+                        state.copy(noNetworkMessage = null)
                     }
                 }
             }
@@ -63,11 +63,11 @@ class NoteListViewModel @Inject constructor(
         viewNotesUseCase.execute().collect { noteList ->
             if (noteList.isEmpty()) {
                 _uiState.update { state ->
-                    state.copy(dataMessage = "Нет данных")
+                    state.copy(noDataMessage = "Нет данных")
                 }
             } else {
                 _uiState.update { state ->
-                    state.copy(dataMessage = null, noteList = noteList)
+                    state.copy(noDataMessage = null, noteList = noteList)
                 }
             }
         }
@@ -76,7 +76,7 @@ class NoteListViewModel @Inject constructor(
     private fun fetchNotes() = viewModelScope.launch {
         fetchNotesUseCase.execute()
         _uiState.update {
-            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true)
+            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true) //если загрузка получилась, то обновляем состоние
         }
     }
 
@@ -104,7 +104,7 @@ class NoteListViewModel @Inject constructor(
 
     fun networkMessageShown() {
         _uiState.update {
-            it.copy(networkMessage = null)
+            it.copy(noNetworkMessage = null)
         }
     }
 
