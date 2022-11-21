@@ -36,10 +36,7 @@ class NoteDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupTitleEditText()
         setupDescriptionEditText()
-        val noteId = arguments?.getInt("noteId")        //получаем записку
-        noteId?.let { id ->                                 //передаем ее во вьюмодель
-            viewModel.setNote(id)
-        }
+        setNote()
         prepareMenu()
         bindState()
     }
@@ -87,6 +84,14 @@ class NoteDetailsFragment : Fragment() {
                 viewModel.setDescription(description = p0.toString())   //после изменения передаем во вьюмодель
             }
         })
+    }
+
+
+    private fun setNote(){
+        val noteId = arguments?.getInt("noteId")        //получаем записку
+        noteId?.let { id ->                                 //передаем ее во вьюмодель
+            viewModel.setNote(id)
+        }
     }
 
     private fun bindState() {
