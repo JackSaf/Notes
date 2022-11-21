@@ -3,12 +3,10 @@ package com.jacksafblaze.notes.presentation.notelist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jacksafblaze.notes.domain.model.Note
-import com.jacksafblaze.notes.domain.usecases.AddNoteUseCase
-import com.jacksafblaze.notes.domain.usecases.DeleteNoteUseCase
-import com.jacksafblaze.notes.domain.usecases.FetchNotesUseCase
-import com.jacksafblaze.notes.domain.usecases.ViewNotesUseCase
+import com.jacksafblaze.notes.domain.usecases.*
 import com.jacksafblaze.notes.util.NetworkStateManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +22,8 @@ class NoteListViewModel @Inject constructor(
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val viewNotesUseCase: ViewNotesUseCase,
     private val fetchNotesUseCase: FetchNotesUseCase,
+    private val checkFirstTimeLaunchUseCase: CheckFirstTimeLaunchUseCase,
+    private val updateAppStatusUseCase: UpdateAppStatusUseCase,
     networkStateManager: NetworkStateManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(NoteListUiState())
@@ -32,59 +32,86 @@ class NoteListViewModel @Inject constructor(
     private var fetchJob: Job? = null
 
     init {
-        checkNetworkConnectivity()
         viewNotes()
+        startAutoRefetch()
     }
 
-    private fun checkNetworkConnectivity() = viewModelScope.launch {        //запускаем проверку состояния интернета
-        networkState.collect { isOnline ->
-            if (!_uiState.value.isFetched){                     //если данные не подгружены
-                fetchJob?.cancel()                              //предыдущую загрузку, если таковая была, отменяем
-                _uiState.update {state->
-                    state.copy(isLoading = true)
-                }
-                fetchJob = fetchNotes()                         //начинаем загрузку
-                if(!isOnline){
-                    fetchJob?.cancel()                          //проверяем онлайн, если соединения нет, отменяем загрузку
-                    _uiState.update { state ->
-                        state.copy(isLoading = false, noNetworkMessage = "Нет интернета")
-                    }
-                }
-                else{
-                    _uiState.update { state ->
-                        state.copy(noNetworkMessage = null)
+    private fun startAutoRefetch() =
+        viewModelScope.launch {
+            checkFirstTimeLaunch()                                  //проверяем состояние приложения перед загрузкой
+            networkState.collect { isOnline ->                       //подписываемся на состоние интернета
+                if (!_uiState.value.isFetched) {                     //если данные не подгружены
+                    fetchJob?.cancel()                               //отменяем загрузку, если таковая была
+                    if (!isOnline) {                                //если интернета нет
+                        _uiState.update { state ->                  //показываем сообщение об этом
+                            state.copy(
+                                isLoading = false,
+                                noNetworkMessage = "Нет интернета"
+                            )
+                        }
+                    } else {
+                        fetchJob = fetchNotes()
+                        _uiState.update { state ->
+                            state.copy(noNetworkMessage = null)
+                        }
                     }
                 }
             }
         }
-    }
 
     private fun viewNotes() = viewModelScope.launch {
-        viewNotesUseCase.execute().collect { noteList ->
-            if (noteList.isEmpty()) {
-                _uiState.update { state ->
-                    state.copy(noDataMessage = "Нет данных")
+        try {
+            viewNotesUseCase.execute().collect { noteList ->
+                if (noteList.isEmpty()) {                           //если получаемый список пуст
+                    _uiState.update { state ->                      //показываем сообщение об этом
+                        state.copy(noDataMessage = "Нет данных")
+                    }
+                } else {
+                    _uiState.update { state ->              //иначе убираем его
+                        state.copy(noDataMessage = null, noteList = noteList)
+                    }
                 }
-            } else {
-                _uiState.update { state ->
-                    state.copy(noDataMessage = null, noteList = noteList)
-                }
+            }
+        }
+        catch (e: Exception){
+            _uiState.update {
+                it.copy(errorMessage = e.message)
             }
         }
     }
 
     private fun fetchNotes() = viewModelScope.launch {
-        fetchNotesUseCase.execute()
-        _uiState.update {
-            it.copy(isLaunchedForTheFirstTime = false, isLoading = false, isFetched = true) //если загрузка получилась, то обновляем состоние
+        _uiState.update { state ->
+            state.copy(isLoading = true)
+        }
+        try {
+            fetchNotesUseCase.execute()
+            _uiState.update {
+                it.copy(isLoading = false, isFetched = true)
+            }
+            updateFirstTimeLaunch()
+        }
+        catch (e: Exception){
+            if(e !is CancellationException){            //показывать сообщение об отмене корутины нам не надо
+                _uiState.update {
+                    it.copy(errorMessage = e.message)
+                }
+            }
         }
     }
 
     fun deleteNote(note: Note) = viewModelScope.launch {
-        deleteNoteUseCase.execute(note)
+        try {
+            deleteNoteUseCase.execute(note)
+        }
+        catch(e: Exception){
+            _uiState.update {
+                it.copy(errorMessage = e.message)
+            }
+        }
     }
 
-    fun addDefaultNote() = viewModelScope.launch {
+    fun addDefaultNote() = viewModelScope.launch {      //создаем дефолтную записку
         val date = LocalDateTime.now()
         val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val dateString = date.format(dateTimeFormatter)
@@ -92,19 +119,53 @@ class NoteListViewModel @Inject constructor(
         val title = "Новая заметка"
         val description = ""
         val note = Note(id, title, description, dateString)
-        addNoteUseCase.execute(note)
+        try {
+            addNoteUseCase.execute(note)
+        }
+        catch(e: Exception){
+            _uiState.update {
+                it.copy(errorMessage = e.message)
+            }
+        }
     }
-    
 
-    fun setLaunchedForTheFirstTime(isLaunchedForTheFirstTime: Boolean){
+    private suspend fun checkFirstTimeLaunch() {
+        try {
+            val firstTimeLaunch = checkFirstTimeLaunchUseCase.execute()
+            _uiState.update {
+                it.copy(firstTimeLaunch = firstTimeLaunch)
+            }
+        }
+        catch(e: Exception){
+            _uiState.update {
+                it.copy(errorMessage = e.message)
+            }
+        }
+    }
+
+    private fun updateFirstTimeLaunch() = viewModelScope.launch {
         _uiState.update {
-            it.copy(isLaunchedForTheFirstTime = isLaunchedForTheFirstTime)
+            it.copy(firstTimeLaunch = false)
+        }
+        try {
+            updateAppStatusUseCase.execute()
+        }
+        catch(e: Exception){
+            _uiState.update {
+                it.copy(errorMessage = e.message)
+            }
         }
     }
 
     fun networkMessageShown() {
         _uiState.update {
             it.copy(noNetworkMessage = null)
+        }
+    }
+
+    fun errorMessageShown(){
+        _uiState.update {
+            it.copy(errorMessage = null)
         }
     }
 

@@ -4,9 +4,9 @@ import com.jacksafblaze.notes.domain.model.Note
 import kotlinx.coroutines.flow.Flow
 
 interface NoteRepository {
-    suspend fun fetchNotesFromServer(): List<Note>
+    suspend fun fetchNotesFromServer()
 
-    fun getAllNotesFromDatabase(): Flow<List<Note>>
+    fun getAllNotes(): Flow<List<Note>>
 
     suspend fun getNoteById(noteId: Int): Note
 

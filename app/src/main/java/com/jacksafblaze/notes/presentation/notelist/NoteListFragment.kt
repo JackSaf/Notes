@@ -6,10 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,17 +20,13 @@ import com.jacksafblaze.notes.R
 import com.jacksafblaze.notes.databinding.FragmentNoteListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.*
-import javax.inject.Inject
 
-private const val dataStoreKey = "IS_LAUNCHED_FOR_FIRST_TIME"
 
 @AndroidEntryPoint
 class NoteListFragment : Fragment() {
-    @Inject
-    lateinit var dataStore: DataStore<Preferences>
     private var _binding: FragmentNoteListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NoteListViewModel by viewModels()
@@ -44,16 +36,12 @@ class NoteListFragment : Fragment() {
     private lateinit var smoothScroller: RecyclerView.SmoothScroller
     private lateinit var itemTouchCallback : ItemTouchHelper.SimpleCallback
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        initSmoothScroller()
-        initItemTouchCallback()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        bindState()
         _binding = FragmentNoteListBinding.inflate(inflater, container, false)
         return _binding?.root
     }
@@ -63,13 +51,12 @@ class NoteListFragment : Fragment() {
         updateDataAtTwelveOclock()
         setupRecyclerView()
         setupFab()
-        appLaunchedForTheFirstTime()
-        bindState()
     }
 
     private fun setupRecyclerView() {
         initAdapter()
         initLinearLayoutManager()
+        initItemTouchCallback()
         binding.noteList.layoutManager = linearLayoutManager
         binding.noteList.adapter = adapter
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.noteList)
@@ -81,46 +68,39 @@ class NoteListFragment : Fragment() {
         }
     }
 
-    private fun appLaunchedForTheFirstTime() = viewLifecycleOwner.lifecycleScope.launch {
-        val key = booleanPreferencesKey(dataStoreKey)
-        val preferences = dataStore.data.first()
-        val firstTime = preferences[key]
-        viewModel.setLaunchedForTheFirstTime(firstTime == null || firstTime == false)
-    }
-
-    private suspend fun updateFirstTimeStatus() {
-        val key = booleanPreferencesKey(dataStoreKey)
-        dataStore.edit { preferences ->
-            preferences[key] = true
-        }
-    }
 
     private fun bindState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    if (state.isLaunchedForTheFirstTime) {
-                        binding.addFab.isEnabled = false
-                        binding.firstTimeProgressBar.visibility =
+                viewModel.uiState.collectLatest { state ->
+                    state.errorMessage?.let { message ->
+                        Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()  //если случилась непредвиденная ошибка, показываем ее в снек баре
+                        viewModel.errorMessageShown()
+                    }
+                    if (state.firstTimeLaunch) {                                              //Проверка или была уже успешно завершена первая загрузка
+                        binding.fetchingProgressBar.visibility = View.GONE                    //убираем горизонтальный прогресс
+                        binding.addFab.isEnabled = false                                      //Если мы еще ни разу не подгружали данные, то фаб тыкать нельзя
+
+                        binding.firstTimeProgressBar.visibility =                             //у первой загрузки круглый прогресс
                             if (state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility =
-                            if (state.networkMessage != null) View.VISIBLE else View.GONE
-                        binding.message.text = state.networkMessage
+
+                            if (state.noNetworkMessage != null) View.VISIBLE else View.GONE   //при прерывании первой загрузки сообщение об интернете
+                        binding.message.text = state.noNetworkMessage                         //высвечивается посередине
                     } else {
-                        updateFirstTimeStatus()
-                        binding.firstTimeProgressBar.visibility = View.GONE
-                        binding.addFab.isEnabled = true
-                        binding.fetchingProgressBar.visibility =
+                        binding.firstTimeProgressBar.visibility = View.GONE                   //убираем круглый прогресс
+                        binding.addFab.isEnabled = true                                       //фаб теперь можно тыкать
+                        binding.fetchingProgressBar.visibility =                              //теперь прогресс бар у нас сверху, с ним и работаем
                             if (state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility =
-                            if (state.dataMessage != null) View.VISIBLE else View.GONE
-                        binding.message.text = state.dataMessage
-                        state.networkMessage?.let { message ->
-                            Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
-                            viewModel.networkMessageShown()
+                            if (state.noDataMessage != null) View.VISIBLE else View.GONE      //посередине высвечивается уже сообщение о данных, а не об интернете
+                        binding.message.text = state.noDataMessage
+                        state.noNetworkMessage?.let { message ->
+                            Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()  //сообщение об интернете подсвечивается в снекбаре
+                            viewModel.networkMessageShown()                                     //вьюмодели сообщается, что сообщение показано
                         }
                         state.noteList?.let { list ->
-                            adapter.setList(list)
+                            adapter.setList(list)          //обновляем список, хотя бы тут все понятно :)
                         }
                     }
                 }
@@ -131,20 +111,21 @@ class NoteListFragment : Fragment() {
     @SuppressLint("NotifyDataSetChanged")
     private fun updateDataAtTwelveOclock() = viewLifecycleOwner.lifecycleScope.launch{
         val calendar = Calendar.getInstance()
-        val currentTime = System.currentTimeMillis()
+        val currentTime = System.currentTimeMillis()        //узнаем теперешнее время
         calendar.timeInMillis = currentTime
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
         calendar.add(Calendar.DAY_OF_YEAR, 1)
-        val timeShift = calendar.timeInMillis - currentTime
-        delay(timeShift)
-        adapter.notifyDataSetChanged()
+        val timeShift = calendar.timeInMillis - currentTime //считаем разницу с 00:00 следующего дня
+        delay(timeShift)                                    //делаем задержку в эту разницу
+        adapter.notifyDataSetChanged()                      //по окончании обновляем список
     }
 
     private fun initAdapter(){
+        initSmoothScroller()
         adapter = NoteAdapter(
-            { itemId ->
+            { itemId ->                                     //при клике на записку переходим на нее, передавая фрагменту ее айди
                 val navController = findNavController()
                 if (navController.currentDestination!!.id == R.id.noteListFragment) {
                     val action =
@@ -160,12 +141,12 @@ class NoteListFragment : Fragment() {
             }
         )
     }
-    private fun initLinearLayoutManager(){
+    private fun initLinearLayoutManager(){  //переворачиваем список и делаем, чтобы записки добавлялись наверх
         linearLayoutManager = LinearLayoutManager(requireContext())
         linearLayoutManager.reverseLayout = true
         linearLayoutManager.stackFromEnd = true
     }
-    private fun initItemTouchCallback(){
+    private fun initItemTouchCallback(){        //для удаления взмахом
         itemTouchCallback = object : ItemTouchHelper.SimpleCallback(
             0, (ItemTouchHelper.LEFT.or(
                 ItemTouchHelper.RIGHT
@@ -184,7 +165,7 @@ class NoteListFragment : Fragment() {
             }
         }
     }
-    private fun initSmoothScroller(){
+    private fun initSmoothScroller(){     //для плавного скрола списка
         smoothScroller = object : LinearSmoothScroller(requireContext()) {
             override fun getVerticalSnapPreference(): Int {
                 return SNAP_TO_START

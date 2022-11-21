@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 class ViewNotesUseCase(private val repository: NoteRepository) {
     fun execute(): Flow<List<Note>>{
-        return repository.getAllNotesFromDatabase()
+        return repository.getAllNotes()
     }
 }

@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.jacksafblaze.notes.R
 import com.jacksafblaze.notes.databinding.FragmentNoteDetailsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,8 +36,8 @@ class NoteDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupTitleEditText()
         setupDescriptionEditText()
-        val noteId = arguments?.getInt("noteId")
-        noteId?.let { id ->
+        val noteId = arguments?.getInt("noteId")        //получаем записку
+        noteId?.let { id ->                                 //передаем ее во вьюмодель
             viewModel.setNote(id)
         }
         prepareMenu()
@@ -44,7 +45,7 @@ class NoteDetailsFragment : Fragment() {
     }
 
     private fun prepareMenu() {
-        val menuHost: MenuHost = requireActivity()
+        val menuHost: MenuHost = requireActivity()      //создаем меню провайдер с галочкой
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.note_details_fragment_toolbar_menu, menu)
@@ -53,8 +54,7 @@ class NoteDetailsFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.update_item -> {
-                        viewModel.updateCurrentNote()
-                        findNavController().navigateUp()
+                        viewModel.updateCurrentNote()   //если юзер тыкает на галку, обновляем записку
                         true
                     }
                     else -> false
@@ -71,7 +71,7 @@ class NoteDetailsFragment : Fragment() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun afterTextChanged(p0: Editable?) {
-                viewModel.setTitle(title = p0.toString())
+                viewModel.setTitle(title = p0.toString())      //после изменения передаем во вьюмодель
             }
 
         })
@@ -84,7 +84,7 @@ class NoteDetailsFragment : Fragment() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun afterTextChanged(p0: Editable?) {
-                viewModel.setDescription(description = p0.toString())
+                viewModel.setDescription(description = p0.toString())   //после изменения передаем во вьюмодель
             }
         })
     }
@@ -93,14 +93,17 @@ class NoteDetailsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    if(!state.noteIsShown) {
+                    state.errorMessage?.let { message ->
+                        Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
+                    }
+                    if(!state.noteIsShown) {            //если данные записки еще не были показаны, показываем
                         state.note?.let { note ->
                             binding.title.setText(note.title)
                             binding.description.setText(note.description)
                             viewModel.noteShown()
                         }
                     }
-                    if (state.isSuccessfullyUpdated) {
+                    if (state.isUpdatedOrLeft) {              //если записка была обновлена или была оставлена как есть, уходим с экрана
                         val navController = findNavController()
                         if (navController.currentDestination!!.id == R.id.noteDetailsFragment) {
                             navController.navigateUp()

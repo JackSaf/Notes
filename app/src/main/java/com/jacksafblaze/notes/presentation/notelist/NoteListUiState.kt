@@ -4,9 +4,10 @@ import com.jacksafblaze.notes.domain.model.Note
 
 data class NoteListUiState(
     val noteList: List<Note>? = null,
-    val isLaunchedForTheFirstTime: Boolean = true,
+    val firstTimeLaunch: Boolean = false,
     val isLoading: Boolean = false,
     val isFetched: Boolean = false,
-    val networkMessage: String? = null,
-    val dataMessage: String? = null
+    val noNetworkMessage: String? = null,
+    val noDataMessage: String? = null,
+    val errorMessage: String? = null
 )

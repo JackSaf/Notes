@@ -1,6 +1,5 @@
 package com.jacksafblaze.notes.presentation.notelist
 
-import android.icu.util.Calendar
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
@@ -29,7 +28,7 @@ class NoteAdapter(
     }
     val differ = AsyncListDiffer(this, itemCallback).apply {
         addListListener { previousList, currentList ->
-            if(currentList.size > previousList.size){
+            if (currentList.size > previousList.size) {           //слушатель для скрола на первый элемент списка
                 scrollCallback.invoke(currentList.size - 1)
             }
         }
@@ -62,36 +61,35 @@ class NoteAdapter(
             val dt = LocalDateTime.parse(note.lastChangesDate, dateTimeFormatter)
             val dateString: String = formatDate(dt)
             binding.lastChangeDate.text = dateString
-            binding.rootItemLayout.setOnClickListener{
+            binding.rootItemLayout.setOnClickListener {
                 onItemClickCallback.invoke(note.id)
             }
         }
 
-        private fun formatDate(dt: LocalDateTime): String{
+        private fun formatDate(dt: LocalDateTime): String {
             val currentDt = LocalDateTime.now()
             val yearIsCurrent = dt.year == currentDt.year
-            val monthIsCurrent = dt.month == currentDt.month
+            val monthIsCurrent =
+                dt.month == currentDt.month                //Проверяем или записка сегодняшняя
             val dayIsCurrent = dt.dayOfMonth == currentDt.dayOfMonth
             val isMadeToday = yearIsCurrent && monthIsCurrent && dayIsCurrent
-            return if(isMadeToday){
+            return if (isMadeToday) {
                 val hourString = dt.hour.toString()
-                val minuteString: String = if(dt.minute < 10){
+                val minuteString: String = if (dt.minute < 10) {
                     "0${dt.minute}"
-                } else{
+                } else {
                     dt.minute.toString()
                 }
                 "$hourString:$minuteString"
-            } else {
-                val dayOfMonthString: String = if(dt.dayOfMonth < 10){
+            } else {                                                        //Форматируем соответственно
+                val dayOfMonthString: String = if (dt.dayOfMonth < 10) {
                     "0${dt.dayOfMonth}"
-                }
-                else{
+                } else {
                     dt.dayOfMonth.toString()
                 }
-                val monthString = if(dt.monthValue < 10){
+                val monthString = if (dt.monthValue < 10) {
                     "0${dt.monthValue}"
-                }
-                else {
+                } else {
                     dt.monthValue.toString()
                 }
                 val yearString = dt.year.toString()

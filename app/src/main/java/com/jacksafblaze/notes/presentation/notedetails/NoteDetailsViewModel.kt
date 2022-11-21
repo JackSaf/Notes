@@ -21,43 +21,65 @@ class NoteDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NoteDetailsUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun setTitle(title: String){
+    fun setTitle(title: String) {
         _uiState.update { state ->
             state.copy(noteTitle = title)
         }
     }
 
-    fun setDescription(description: String){
+    fun setDescription(description: String) {
         _uiState.update { state ->
             state.copy(noteDescription = description)
         }
     }
 
-    fun setNote(noteId: Int) = viewModelScope.launch {
-        val note = getNoteByIdUseCase.execute(noteId)
-        _uiState.update {state ->
-            state.copy(note = note, noteTitle = note.title, noteDescription = note.description)
+    fun setNote(noteId: Int) =
+        viewModelScope.launch {      //после того, как получаем айди, находим заметку с этим айди в бд
+            try {
+                val note = getNoteByIdUseCase.execute(noteId)
+                _uiState.update { state ->
+                    state.copy(
+                        note = note,
+                        noteTitle = note.title,
+                        noteDescription = note.description
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = e.message)
+                }
+            }
         }
-    }
 
-    fun noteShown(){
-        _uiState.update {state ->
+    fun noteShown() {
+        _uiState.update { state ->
             state.copy(noteIsShown = true)
         }
     }
+
     fun updateCurrentNote() = viewModelScope.launch {
         val noteTitle = _uiState.value.noteTitle!!
         val noteDescription = _uiState.value.noteDescription!!
         val currentNote = _uiState.value.note!!
-        if(noteTitle != currentNote.title || noteDescription != currentNote.description){
-            val date = LocalDateTime.now()
+        if (noteTitle != currentNote.title || noteDescription != currentNote.description) {   //проверяем или теперешние значения совпадают с выбранной запиской запиской
+            val date = LocalDateTime.now()                                                  //если нет, то обновляем ее, в том числе изменяя дату на теперешнюю
             val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             val dateString = date.format(dateTimeFormatter)
-            val updatedNote = currentNote.copy(title = noteTitle, description = noteDescription, lastChangesDate = dateString)
-            updateNoteUseCase.execute(updatedNote)
-            _uiState.update { state ->
-                state.copy(isSuccessfullyUpdated = true)
+            val updatedNote = currentNote.copy(
+                title = noteTitle,
+                description = noteDescription,
+                lastChangesDate = dateString
+            )
+            try {
+                updateNoteUseCase.execute(updatedNote)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = e.message)
+                }
             }
+        }
+        _uiState.update {
+            it.copy(isUpdatedOrLeft = true)
         }
     }
 }

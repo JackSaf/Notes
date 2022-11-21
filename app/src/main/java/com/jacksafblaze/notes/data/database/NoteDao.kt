@@ -20,6 +20,9 @@ interface NoteDao {
     suspend fun updateNote(noteDbDto: NoteDbDto)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllNotes(list: List<NoteDbDto>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(noteDbDto: NoteDbDto)
 
     @Delete

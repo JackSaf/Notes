@@ -1,7 +1,6 @@
 package com.jacksafblaze.notes.data
 
 import com.jacksafblaze.notes.data.database.DatabaseMapper
-import com.jacksafblaze.notes.data.database.NoteDao
 import com.jacksafblaze.notes.data.database.NoteDatabase
 import com.jacksafblaze.notes.data.network.NetworkMapper
 import com.jacksafblaze.notes.data.network.NoteApi
@@ -12,12 +11,18 @@ import kotlinx.coroutines.flow.map
 
 class RepositoryImpl(database: NoteDatabase, private val api: NoteApi): NoteRepository {
     private val noteDao = database.noteDao()
-    override suspend fun fetchNotesFromServer(): List<Note> {
-        val entityList = api.fetchNotes()
-        return NetworkMapper.mapEntityListToDomainModelList(entityList)
+    override suspend fun fetchNotesFromServer() {                                        //Загружаем, а после сохраняем в бд
+        val entityList = api.fetchNotes()                                               //Можно было сделать с помощью NetworkBoundResource
+        val domainModelList = NetworkMapper.mapEntityListToDomainModelList(entityList) //но тогда было бы сложнее с автоматическим ретраем после реконекта
+        addAllNotes(domainModelList)
     }
 
-    override fun getAllNotesFromDatabase(): Flow<List<Note>> {
+    private suspend fun addAllNotes(list: List<Note>){
+        val dbDtoList = DatabaseMapper.mapDomainModelListToEntityList(list)
+        noteDao.insertAllNotes(dbDtoList)
+    }
+
+    override fun getAllNotes(): Flow<List<Note>> {
         return noteDao.getAllNotes().map { DatabaseMapper.mapEntityListToDomainModelList(it) }
     }
 

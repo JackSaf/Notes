@@ -1,5 +1,6 @@
 package com.jacksafblaze.notes.di
 
+import com.jacksafblaze.notes.domain.repository.AppRepository
 import com.jacksafblaze.notes.domain.repository.NoteRepository
 import com.jacksafblaze.notes.domain.usecases.*
 import dagger.Module
@@ -33,5 +34,13 @@ class UseCaseModule {
     @Provides
     fun provideViewNotesUseCase(repository: NoteRepository): ViewNotesUseCase{
         return ViewNotesUseCase(repository)
+    }
+    @Provides
+    fun provideCheckFirstTimeLaunchUseCase(repository: AppRepository): CheckFirstTimeLaunchUseCase{
+        return CheckFirstTimeLaunchUseCase(repository)
+    }
+    @Provides
+    fun provideUpdateAppStatusUseCase(repository: AppRepository): UpdateAppStatusUseCase{
+        return UpdateAppStatusUseCase(repository)
     }
 }
