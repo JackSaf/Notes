@@ -37,7 +37,7 @@ class NoteDetailsViewModel @Inject constructor(
         viewModelScope.launch {      //после того, как получаем айди, находим заметку с этим айди в бд
             try {
                 val note = getNoteByIdUseCase.execute(noteId)
-                _uiState.update { state ->
+                _uiState.update { state ->              //и добавляем ее в состояние, отдельно добавляем заголовок и описание для дальнейшего сравнения
                     state.copy(
                         note = note,
                         noteTitle = note.title,
