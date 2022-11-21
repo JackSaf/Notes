@@ -61,7 +61,7 @@ class NoteDetailsViewModel @Inject constructor(
         val noteTitle = _uiState.value.noteTitle!!
         val noteDescription = _uiState.value.noteDescription!!
         val currentNote = _uiState.value.note!!
-        if (noteTitle != currentNote.title || noteDescription != currentNote.description) {   //проверяем или теперешние значения совпадают с выбранной запиской запиской
+        if (noteTitle != currentNote.title || noteDescription != currentNote.description) {   //проверяем или теперешние значения совпадают с выбранной запиской
             val date = LocalDateTime.now()                                                  //если нет, то обновляем ее, в том числе изменяя дату на теперешнюю
             val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             val dateString = date.format(dateTimeFormatter)
