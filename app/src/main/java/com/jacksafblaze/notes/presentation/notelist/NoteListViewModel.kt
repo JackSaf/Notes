@@ -88,8 +88,8 @@ class NoteListViewModel @Inject constructor(
             fetchNotesUseCase.execute()
             _uiState.update {
                 it.copy(isLoading = false, isFetched = true)
-            }
-            updateFirstTimeLaunch()
+            }                                           //тогда, и только тогда, когда первая загрузка получилась, обновляем статус приложения
+            updateFirstTimeLaunch()                     //если юзер зайдет, а потом быстро закроет приложение - не считается :)
         }
         catch (e: Exception){
             if(e !is CancellationException){            //показывать сообщение об отмене корутины нам не надо

@@ -41,7 +41,6 @@ class NoteListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        bindState()
         _binding = FragmentNoteListBinding.inflate(inflater, container, false)
         return _binding?.root
     }
@@ -51,6 +50,7 @@ class NoteListFragment : Fragment() {
         updateDataAtTwelveOclock()
         setupRecyclerView()
         setupFab()
+        bindState()
     }
 
     private fun setupRecyclerView() {
@@ -79,26 +79,30 @@ class NoteListFragment : Fragment() {
                     }
                     if (state.firstTimeLaunch) {                                              //Проверка или была уже успешно завершена первая загрузка
                         binding.fetchingProgressBar.visibility = View.GONE                    //убираем горизонтальный прогресс
-                        binding.addFab.isEnabled = false                                      //Если мы еще ни разу не подгружали данные, то фаб тыкать нельзя
+                        binding.addFab.isEnabled = false                                      //фаб тыкать нельзя
 
                         binding.firstTimeProgressBar.visibility =                             //у первой загрузки круглый прогресс
                             if (state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility =
 
-                            if (state.noNetworkMessage != null) View.VISIBLE else View.GONE   //при прерывании первой загрузки сообщение об интернете
-                        binding.message.text = state.noNetworkMessage                         //высвечивается посередине
+                            if (state.noNetworkMessage != null) View.VISIBLE else View.GONE   //при прерывании первой загрузки сообщение об интернете высвечивается посередине
+                        binding.message.text = state.noNetworkMessage
                     } else {
                         binding.firstTimeProgressBar.visibility = View.GONE                   //убираем круглый прогресс
                         binding.addFab.isEnabled = true                                       //фаб теперь можно тыкать
+
                         binding.fetchingProgressBar.visibility =                              //теперь прогресс бар у нас сверху, с ним и работаем
                             if (state.isLoading) View.VISIBLE else View.GONE
                         binding.message.visibility =
+
                             if (state.noDataMessage != null) View.VISIBLE else View.GONE      //посередине высвечивается уже сообщение о данных, а не об интернете
                         binding.message.text = state.noDataMessage
+
                         state.noNetworkMessage?.let { message ->
                             Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()  //сообщение об интернете подсвечивается в снекбаре
                             viewModel.networkMessageShown()                                     //вьюмодели сообщается, что сообщение показано
                         }
+
                         state.noteList?.let { list ->
                             adapter.setList(list)          //обновляем список, хотя бы тут все понятно :)
                         }
@@ -146,7 +150,7 @@ class NoteListFragment : Fragment() {
         linearLayoutManager.reverseLayout = true
         linearLayoutManager.stackFromEnd = true
     }
-    private fun initItemTouchCallback(){        //для удаления взмахом
+    private fun initItemTouchCallback(){    //для удаления взмахом
         itemTouchCallback = object : ItemTouchHelper.SimpleCallback(
             0, (ItemTouchHelper.LEFT.or(
                 ItemTouchHelper.RIGHT
@@ -165,7 +169,7 @@ class NoteListFragment : Fragment() {
             }
         }
     }
-    private fun initSmoothScroller(){     //для плавного скрола списка
+    private fun initSmoothScroller(){     //для плавного скрола списка наверх при добавлении нового элемента
         smoothScroller = object : LinearSmoothScroller(requireContext()) {
             override fun getVerticalSnapPreference(): Int {
                 return SNAP_TO_START
