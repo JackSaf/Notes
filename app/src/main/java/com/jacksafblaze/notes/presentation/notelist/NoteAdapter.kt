@@ -74,7 +74,12 @@ class NoteAdapter(
             val dayIsCurrent = dt.dayOfMonth == currentDt.dayOfMonth
             val isMadeToday = yearIsCurrent && monthIsCurrent && dayIsCurrent
             return if (isMadeToday) {
-                val hourString = dt.hour.toString()
+                val hourString = if(dt.hour < 10){
+                    "0${dt.hour}"
+                }
+                else{
+                    dt.hour.toString()
+                }
                 val minuteString: String = if (dt.minute < 10) {
                     "0${dt.minute}"
                 } else {
