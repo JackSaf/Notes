@@ -42,6 +42,7 @@ class NoteListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentNoteListBinding.inflate(inflater, container, false)
+        bindState()
         return _binding?.root
     }
 
@@ -50,7 +51,6 @@ class NoteListFragment : Fragment() {
         updateDataAtTwelveOclock()
         setupRecyclerView()
         setupFab()
-        bindState()
     }
 
     private fun setupRecyclerView() {
@@ -83,8 +83,8 @@ class NoteListFragment : Fragment() {
 
                         binding.firstTimeProgressBar.visibility =                             //у первой загрузки круглый прогресс
                             if (state.isLoading) View.VISIBLE else View.GONE
-                        binding.message.visibility =
 
+                        binding.message.visibility =
                             if (state.noNetworkMessage != null) View.VISIBLE else View.GONE   //при прерывании первой загрузки сообщение об интернете высвечивается посередине
                         binding.message.text = state.noNetworkMessage
                     } else {
@@ -93,8 +93,8 @@ class NoteListFragment : Fragment() {
 
                         binding.fetchingProgressBar.visibility =                              //теперь прогресс бар у нас сверху, с ним и работаем
                             if (state.isLoading) View.VISIBLE else View.GONE
-                        binding.message.visibility =
 
+                        binding.message.visibility =
                             if (state.noDataMessage != null) View.VISIBLE else View.GONE      //посередине высвечивается уже сообщение о данных, а не об интернете
                         binding.message.text = state.noDataMessage
 

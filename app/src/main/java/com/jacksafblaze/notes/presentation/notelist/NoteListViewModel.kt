@@ -32,18 +32,18 @@ class NoteListViewModel @Inject constructor(
     private var fetchJob: Job? = null
 
     init {
-        viewNotes()
-        startAutoRefetch()
+        checkFirstTimeLaunch()                                  //проверяем состояние приложения перед загрузкой
+        viewNotes()                                             //подписываемся на записки с БД
+        startAutoRefetch()                                      //подзагрузка в зависимости от состояния сети
     }
 
     private fun startAutoRefetch() =
         viewModelScope.launch {
-            checkFirstTimeLaunch()                                  //проверяем состояние приложения перед загрузкой
             networkState.collect { isOnline ->                       //подписываемся на состоние интернета
                 if (!_uiState.value.isFetched) {                     //если данные не подгружены
                     fetchJob?.cancel()                               //отменяем загрузку, если таковая была
-                    if (!isOnline) {                                //если интернета нет
-                        _uiState.update { state ->                  //показываем сообщение об этом
+                    if (!isOnline) {                                 //если интернета нет
+                        _uiState.update { state ->                   //показываем сообщение об этом
                             state.copy(
                                 isLoading = false,
                                 noNetworkMessage = "Нет интернета"
@@ -129,7 +129,7 @@ class NoteListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkFirstTimeLaunch() {
+    private fun checkFirstTimeLaunch() = viewModelScope.launch {
         try {
             val firstTimeLaunch = checkFirstTimeLaunchUseCase.execute()
             _uiState.update {
